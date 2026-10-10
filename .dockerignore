@@ -1,0 +1,7 @@
+.env
+test/
+logs/
+voices/
+bin/
+.git/
+*.log

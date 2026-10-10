@@ -1,0 +1,34 @@
+services:
+  jiramate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: jiramate:latest
+    container_name: jiramate
+    restart: always
+
+    # Config is read from /app/.env by godotenv (see internal/app/bot.go):
+    #   BOT_TOKEN, OPENAI_API_KEY,
+    #   MYSQL_HOST, MYSQL_PORT, MYSQL_DB, MYSQL_USER, MYSQL_PASSWORD,
+    #   REDIS_HOST (host:port), REDIS_PASSWORD
+    volumes:
+      - ./.env:/app/.env:ro
+      - ./logs:/app/logs       # daily-rotated logs
+      - ./voices:/app/voices   # scratch dir for transcribed voice notes
+
+    # No ports: this is a Telegram long-polling bot (outbound calls only).
+
+    # Only needed when MySQL/Redis run on the Docker host itself —
+    # then set MYSQL_HOST=host.docker.internal / REDIS_HOST=host.docker.internal:PORT in .env.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    # --- Alternative: run a binary you build outside Docker instead of `build:` above ---
+    # image: alpine:latest
+    # command: ["./jiramate"]
+    # volumes:
+    #   - ./bin/jiramate:/app/jiramate:ro
+    #   - ./.env:/app/.env:ro
+    #   - ./logs:/app/logs
+    #   - ./voices:/app/voices
+    # working_dir: /app
